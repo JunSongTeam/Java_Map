@@ -1,0 +1,16 @@
+server:
+  port: 8088
+  address: 0.0.0.0
+
+spring:
+  application:
+    name: map-java
+
+auth:
+  token:
+    never-expires: true
+    expiration-seconds: 604800
+  verification-code:
+    expiration-seconds: 300
+    expose-code: true
+    default-code: "123456"
