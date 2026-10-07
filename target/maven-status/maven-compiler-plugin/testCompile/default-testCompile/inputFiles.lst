@@ -1,7 +1,7 @@
-/Users/mac/Desktop/Map_Java/src/test/java/com/example/mapjava/place/PlaceControllerTest.java
-/Users/mac/Desktop/Map_Java/src/test/java/com/example/mapjava/systemmessage/SystemMessageControllerTest.java
-/Users/mac/Desktop/Map_Java/src/test/java/com/example/mapjava/health/HealthControllerTest.java
-/Users/mac/Desktop/Map_Java/src/test/java/com/example/mapjava/auth/VerificationCodeControllerTest.java
-/Users/mac/Desktop/Map_Java/src/test/java/com/example/mapjava/friend/FriendControllerTest.java
-/Users/mac/Desktop/Map_Java/src/test/java/com/example/mapjava/track/TrackControllerTest.java
-/Users/mac/Desktop/Map_Java/src/test/java/com/example/mapjava/auth/AuthControllerTest.java
+/Users/mac/Desktop/我的项目/Java_Map/src/test/java/com/example/mapjava/auth/VerificationCodeControllerTest.java
+/Users/mac/Desktop/我的项目/Java_Map/src/test/java/com/example/mapjava/place/PlaceControllerTest.java
+/Users/mac/Desktop/我的项目/Java_Map/src/test/java/com/example/mapjava/systemmessage/SystemMessageControllerTest.java
+/Users/mac/Desktop/我的项目/Java_Map/src/test/java/com/example/mapjava/track/TrackControllerTest.java
+/Users/mac/Desktop/我的项目/Java_Map/src/test/java/com/example/mapjava/auth/AuthControllerTest.java
+/Users/mac/Desktop/我的项目/Java_Map/src/test/java/com/example/mapjava/health/HealthControllerTest.java
+/Users/mac/Desktop/我的项目/Java_Map/src/test/java/com/example/mapjava/friend/FriendControllerTest.java
