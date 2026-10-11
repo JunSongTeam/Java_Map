@@ -11,6 +11,16 @@ auth:
     never-expires: true
     expiration-seconds: 604800
   verification-code:
-    expiration-seconds: 300
-    expose-code: true
-    default-code: "123456"
+    expiration-seconds: ${AUTH_VERIFICATION_CODE_EXPIRATION_SECONDS:300}
+    expose-code: ${AUTH_VERIFICATION_CODE_EXPOSE_CODE:true}
+    default-code: ${AUTH_VERIFICATION_CODE_DEFAULT_CODE:123456}
+
+sms:
+  aliyun:
+    enabled: ${ALIYUN_SMS_ENABLED:false}
+    access-key-id: ${ALIYUN_SMS_ACCESS_KEY_ID:}
+    access-key-secret: ${ALIYUN_SMS_ACCESS_KEY_SECRET:}
+    sign-name: ${ALIYUN_SMS_SIGN_NAME:}
+    template-code: ${ALIYUN_SMS_TEMPLATE_CODE:}
+    code-variable-name: ${ALIYUN_SMS_CODE_VARIABLE_NAME:code}
+    endpoint: ${ALIYUN_SMS_ENDPOINT:dysmsapi.aliyuncs.com}
