@@ -23,5 +23,7 @@ sms:
     sign-name: ${ALIYUN_SMS_SIGN_NAME:}
     template-code: ${ALIYUN_SMS_TEMPLATE_CODE:}
     code-variable-name: ${ALIYUN_SMS_CODE_VARIABLE_NAME:code}
+    valid-minutes-variable-name: ${ALIYUN_SMS_VALID_MINUTES_VARIABLE_NAME:min}
+    valid-minutes: ${ALIYUN_SMS_VALID_MINUTES:5}
     country-code: ${ALIYUN_SMS_COUNTRY_CODE:86}
     endpoint: ${ALIYUN_SMS_ENDPOINT:dypnsapi.aliyuncs.com}

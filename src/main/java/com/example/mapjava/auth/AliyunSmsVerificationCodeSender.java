@@ -1,5 +1,6 @@
 package com.example.mapjava.auth;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.aliyun.dypnsapi20170525.Client;
@@ -28,6 +29,8 @@ public class AliyunSmsVerificationCodeSender implements VerificationCodeSender {
     private final String signName;
     private final String templateCode;
     private final String codeVariableName;
+    private final String validMinutesVariableName;
+    private final String validMinutes;
     private final String countryCode;
 
     public AliyunSmsVerificationCodeSender(
@@ -37,6 +40,8 @@ public class AliyunSmsVerificationCodeSender implements VerificationCodeSender {
             @Value("${sms.aliyun.sign-name:}") String signName,
             @Value("${sms.aliyun.template-code:}") String templateCode,
             @Value("${sms.aliyun.code-variable-name:code}") String codeVariableName,
+            @Value("${sms.aliyun.valid-minutes-variable-name:min}") String validMinutesVariableName,
+            @Value("${sms.aliyun.valid-minutes:5}") String validMinutes,
             @Value("${sms.aliyun.country-code:86}") String countryCode,
             @Value("${sms.aliyun.endpoint:dypnsapi.aliyuncs.com}") String endpoint
     ) throws Exception {
@@ -44,6 +49,8 @@ public class AliyunSmsVerificationCodeSender implements VerificationCodeSender {
         this.signName = required("sms.aliyun.sign-name", signName);
         this.templateCode = required("sms.aliyun.template-code", templateCode);
         this.codeVariableName = required("sms.aliyun.code-variable-name", codeVariableName);
+        this.validMinutesVariableName = required("sms.aliyun.valid-minutes-variable-name", validMinutesVariableName);
+        this.validMinutes = required("sms.aliyun.valid-minutes", validMinutes);
         this.countryCode = required("sms.aliyun.country-code", countryCode);
         this.client = new Client(new Config()
                 .setAccessKeyId(required("sms.aliyun.access-key-id", accessKeyId))
@@ -58,13 +65,17 @@ public class AliyunSmsVerificationCodeSender implements VerificationCodeSender {
         }
 
         try {
+            Map<String, String> templateParams = new LinkedHashMap<>();
+            templateParams.put(codeVariableName, code);
+            templateParams.put(validMinutesVariableName, validMinutes);
+
             SendSmsVerifyCodeRequest request = new SendSmsVerifyCodeRequest()
                     .setCountryCode(countryCode)
                     .setPhoneNumber(target)
                     .setSignName(signName)
                     .setTemplateCode(templateCode)
                     .setValidTime(300L)
-                    .setTemplateParam(objectMapper.writeValueAsString(Map.of(codeVariableName, code)));
+                    .setTemplateParam(objectMapper.writeValueAsString(templateParams));
             SendSmsVerifyCodeResponse response = client.sendSmsVerifyCodeWithOptions(request, new RuntimeOptions());
 
             if (response == null || response.getBody() == null || !SUCCESS_CODE.equals(response.getBody().getCode())) {
