@@ -23,4 +23,5 @@ sms:
     sign-name: ${ALIYUN_SMS_SIGN_NAME:}
     template-code: ${ALIYUN_SMS_TEMPLATE_CODE:}
     code-variable-name: ${ALIYUN_SMS_CODE_VARIABLE_NAME:code}
-    endpoint: ${ALIYUN_SMS_ENDPOINT:dysmsapi.aliyuncs.com}
+    country-code: ${ALIYUN_SMS_COUNTRY_CODE:86}
+    endpoint: ${ALIYUN_SMS_ENDPOINT:dypnsapi.aliyuncs.com}

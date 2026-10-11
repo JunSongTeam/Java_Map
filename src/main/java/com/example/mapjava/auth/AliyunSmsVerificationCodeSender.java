@@ -2,9 +2,9 @@ package com.example.mapjava.auth;
 
 import java.util.Map;
 
-import com.aliyun.dysmsapi20170525.Client;
-import com.aliyun.dysmsapi20170525.models.SendSmsRequest;
-import com.aliyun.dysmsapi20170525.models.SendSmsResponse;
+import com.aliyun.dypnsapi20170525.Client;
+import com.aliyun.dypnsapi20170525.models.SendSmsVerifyCodeRequest;
+import com.aliyun.dypnsapi20170525.models.SendSmsVerifyCodeResponse;
 import com.aliyun.teaopenapi.models.Config;
 import com.aliyun.teautil.models.RuntimeOptions;
 import com.example.mapjava.common.BadRequestException;
@@ -28,6 +28,7 @@ public class AliyunSmsVerificationCodeSender implements VerificationCodeSender {
     private final String signName;
     private final String templateCode;
     private final String codeVariableName;
+    private final String countryCode;
 
     public AliyunSmsVerificationCodeSender(
             ObjectMapper objectMapper,
@@ -36,12 +37,14 @@ public class AliyunSmsVerificationCodeSender implements VerificationCodeSender {
             @Value("${sms.aliyun.sign-name:}") String signName,
             @Value("${sms.aliyun.template-code:}") String templateCode,
             @Value("${sms.aliyun.code-variable-name:code}") String codeVariableName,
-            @Value("${sms.aliyun.endpoint:dysmsapi.aliyuncs.com}") String endpoint
+            @Value("${sms.aliyun.country-code:86}") String countryCode,
+            @Value("${sms.aliyun.endpoint:dypnsapi.aliyuncs.com}") String endpoint
     ) throws Exception {
         this.objectMapper = objectMapper;
         this.signName = required("sms.aliyun.sign-name", signName);
         this.templateCode = required("sms.aliyun.template-code", templateCode);
         this.codeVariableName = required("sms.aliyun.code-variable-name", codeVariableName);
+        this.countryCode = required("sms.aliyun.country-code", countryCode);
         this.client = new Client(new Config()
                 .setAccessKeyId(required("sms.aliyun.access-key-id", accessKeyId))
                 .setAccessKeySecret(required("sms.aliyun.access-key-secret", accessKeySecret))
@@ -55,12 +58,14 @@ public class AliyunSmsVerificationCodeSender implements VerificationCodeSender {
         }
 
         try {
-            SendSmsRequest request = new SendSmsRequest()
-                    .setPhoneNumbers(target)
+            SendSmsVerifyCodeRequest request = new SendSmsVerifyCodeRequest()
+                    .setCountryCode(countryCode)
+                    .setPhoneNumber(target)
                     .setSignName(signName)
                     .setTemplateCode(templateCode)
+                    .setValidTime(300L)
                     .setTemplateParam(objectMapper.writeValueAsString(Map.of(codeVariableName, code)));
-            SendSmsResponse response = client.sendSmsWithOptions(request, new RuntimeOptions());
+            SendSmsVerifyCodeResponse response = client.sendSmsVerifyCodeWithOptions(request, new RuntimeOptions());
 
             if (response == null || response.getBody() == null || !SUCCESS_CODE.equals(response.getBody().getCode())) {
                 String responseCode = response == null || response.getBody() == null ? "UNKNOWN" : response.getBody().getCode();
