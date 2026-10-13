@@ -4,11 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -20,10 +22,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-@SpringBootTest
+@SpringBootTest(properties = "app.avatar.storage-dir=target/test-avatars")
 @AutoConfigureMockMvc
 class AuthControllerTest {
 
@@ -88,6 +91,78 @@ class AuthControllerTest {
         mockMvc.perform(get(avatarUrl))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.valueOf("image/svg+xml")));
+    }
+
+    @Test
+    void updatesCurrentUserProfile() throws Exception {
+        String phone = "13900139000";
+        String token = tokenFrom(login(phone, sendCode(phone)));
+
+        mockMvc.perform(post("/api/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nickname": "小明",
+                                  "avatarUrl": "https://example.com/avatar.png"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value(phone))
+                .andExpect(jsonPath("$.nickname").value("小明"))
+                .andExpect(jsonPath("$.avatarUrl").value("https://example.com/avatar.png"))
+                .andExpect(jsonPath("$.memberStatus").value("inactive"))
+                .andExpect(jsonPath("$.memberExpiresAt").value(nullValue()));
+
+        mockMvc.perform(get("/api/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value(phone))
+                .andExpect(jsonPath("$.nickname").value("小明"))
+                .andExpect(jsonPath("$.avatarUrl").value("https://example.com/avatar.png"));
+    }
+
+    @Test
+    void rejectsBlankProfileFields() throws Exception {
+        String token = tokenFrom(login("13900139001", sendCode("13900139001")));
+
+        mockMvc.perform(post("/api/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nickname": " "
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("昵称不能为空"));
+    }
+
+    @Test
+    void uploadsCurrentUserAvatar() throws Exception {
+        String phone = "13900139002";
+        String token = tokenFrom(login(phone, sendCode(phone)));
+        byte[] avatarBytes = "fake png content".getBytes(StandardCharsets.UTF_8);
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "avatar.png",
+                MediaType.IMAGE_PNG_VALUE,
+                avatarBytes
+        );
+
+        MvcResult uploadResult = mockMvc.perform(multipart("/api/me/avatar")
+                        .file(file)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value(phone))
+                .andExpect(jsonPath("$.avatarUrl", matchesPattern("^/api/users/.+/avatar$")))
+                .andReturn();
+
+        String avatarUrl = fieldFrom(uploadResult, "avatarUrl");
+        mockMvc.perform(get(avatarUrl))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_PNG))
+                .andExpect(content().bytes(avatarBytes));
     }
 
     @Test

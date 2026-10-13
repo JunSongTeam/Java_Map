@@ -45,6 +45,14 @@ public class AuthController {
         return authService.currentUser(authorization);
     }
 
+    @PostMapping("/me")
+    public UserProfile updateMe(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
+            @Valid @RequestBody UpdateUserProfileRequest request
+    ) {
+        return authService.updateCurrentUser(authorization, request);
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization

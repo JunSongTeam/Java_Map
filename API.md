@@ -147,7 +147,7 @@
 }
 ```
 
-## 4. 获取我的资料
+## 4. 我的资料
 
 ### GET `/api/me`
 
@@ -167,8 +167,8 @@
 | phone | string | 手机号 |
 | nickname | string | 昵称 |
 | avatarUrl | string | 头像地址 |
-| memberStatus | string | 会员状态，当前默认 `inactive` |
-| memberExpiresAt | string/null | 会员到期时间，当前默认 `null` |
+| memberStatus | string | 会员状态：`active` 或 `inactive` |
+| memberExpiresAt | string/null | 会员到期时间，非会员时为 `null` |
 
 返回示例：
 
@@ -177,6 +177,79 @@
   "userId": "6d8cf2a1-cb7b-49e7-a88c-3f4a4ffdc9e7",
   "phone": "13800138000",
   "nickname": "User 8000",
+  "avatarUrl": "/api/users/6d8cf2a1-cb7b-49e7-a88c-3f4a4ffdc9e7/avatar",
+  "memberStatus": "inactive",
+  "memberExpiresAt": null
+}
+```
+
+### POST `/api/me`
+
+更新当前登录用户的资料。当前只允许修改昵称和头像地址，手机号、用户 id、会员状态不能通过这个接口修改。
+
+请求头：
+
+| 名称 | 必填 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | `Bearer {token}` |
+
+请求参数：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| nickname | string | 否 | 昵称，最多 40 个字符；不传则保持原值 |
+| avatarUrl | string | 否 | 头像地址，最多 500 个字符；不传则保持原值 |
+
+请求示例：
+
+```json
+{
+  "nickname": "小明",
+  "avatarUrl": "https://example.com/avatar.png"
+}
+```
+
+返回参数：同 `GET /api/me`。
+
+返回示例：
+
+```json
+{
+  "userId": "6d8cf2a1-cb7b-49e7-a88c-3f4a4ffdc9e7",
+  "phone": "13800138000",
+  "nickname": "小明",
+  "avatarUrl": "https://example.com/avatar.png",
+  "memberStatus": "inactive",
+  "memberExpiresAt": null
+}
+```
+
+### POST `/api/me/avatar`
+
+上传当前登录用户头像。上传成功后会把当前用户的 `avatarUrl` 更新为 `/api/users/{userId}/avatar`。
+
+请求头：
+
+| 名称 | 必填 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | `Bearer {token}` |
+| Content-Type | 是 | `multipart/form-data` |
+
+请求参数：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| file | file | 是 | 头像图片，支持 JPG、PNG、WEBP，最大 2MB |
+
+返回参数：同 `GET /api/me`。
+
+返回示例：
+
+```json
+{
+  "userId": "6d8cf2a1-cb7b-49e7-a88c-3f4a4ffdc9e7",
+  "phone": "13800138000",
+  "nickname": "小明",
   "avatarUrl": "/api/users/6d8cf2a1-cb7b-49e7-a88c-3f4a4ffdc9e7/avatar",
   "memberStatus": "inactive",
   "memberExpiresAt": null
@@ -207,7 +280,7 @@
 | --- | --- | --- | --- |
 | id | string | 是 | 用户 id，放在路径里 |
 
-返回：`image/svg+xml` 图片内容。
+返回：如果用户上传过头像，返回上传的图片内容；否则返回默认 `image/svg+xml` 头像。
 
 ## 7. 查询用户是否注册
 
@@ -1070,3 +1143,260 @@ GET /api/places?category=landmark&q=square
   "verified": true
 }
 ```
+
+## 28. 会员商品列表
+
+### GET `/api/membership/products`
+
+返回当前可购买的会员商品列表。
+
+请求参数：无
+
+返回参数：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| productId | string | 后端会员商品 id |
+| title | string | 商品标题 |
+| description | string | 商品说明 |
+| durationDays | number | 开通天数 |
+| priceCents | number | 价格，单位分 |
+| currency | string | 币种，当前为 `CNY` |
+| appleProductId | string | iOS 内购商品 id |
+| time | string | App 展示用会员时长 |
+| price | string | App 展示用现价 |
+| originalPrice | string | App 展示用原价 |
+| unitPrice | string | App 展示用日均价 |
+| orderID | string | App 原商品 id，当前与 `productId` 一致 |
+| status | string | App 展示状态，`1` 表示推荐/默认选中，`0` 表示普通 |
+
+返回示例：
+
+```json
+[
+  {
+    "productId": "20231004",
+    "title": "永久会员",
+    "description": "开通后可永久使用会员功能",
+    "durationDays": 36500,
+    "priceCents": 16800,
+    "currency": "CNY",
+    "appleProductId": "location.vip.permanent",
+    "time": "永久会员",
+    "price": "¥168",
+    "originalPrice": "¥688",
+    "unitPrice": "¥0.01/天",
+    "orderID": "20231004",
+    "status": "1"
+  },
+  {
+    "productId": "20231003",
+    "title": "季度会员",
+    "description": "开通后可使用会员功能 90 天",
+    "durationDays": 90,
+    "priceCents": 5800,
+    "currency": "CNY",
+    "appleProductId": "location.vip.quarterly",
+    "time": "季度会员",
+    "price": "¥58",
+    "originalPrice": "¥88",
+    "unitPrice": "¥0.7/天",
+    "orderID": "20231003",
+    "status": "0"
+  },
+  {
+    "productId": "20231002",
+    "title": "月会员",
+    "description": "开通后可使用会员功能 31 天",
+    "durationDays": 31,
+    "priceCents": 3800,
+    "currency": "CNY",
+    "appleProductId": "location.vip.monthly",
+    "time": "月会员",
+    "price": "¥38",
+    "originalPrice": "¥68",
+    "unitPrice": "¥1.2/天",
+    "orderID": "20231002",
+    "status": "0"
+  },
+  {
+    "productId": "20231001",
+    "title": "周会员",
+    "description": "开通后可使用会员功能 7 天",
+    "durationDays": 7,
+    "priceCents": 2800,
+    "currency": "CNY",
+    "appleProductId": "location.vip.weekly",
+    "time": "周会员",
+    "price": "¥28",
+    "originalPrice": "¥38",
+    "unitPrice": "¥4/天",
+    "orderID": "20231001",
+    "status": "0"
+  }
+]
+```
+
+## 29. 会员状态
+
+### GET `/api/membership/status`
+
+查询当前登录用户的会员状态。
+
+请求头：
+
+| 名称 | 必填 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | `Bearer {token}` |
+
+请求参数：无
+
+返回参数：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| memberStatus | string | 会员状态：`active` 或 `inactive` |
+| memberExpiresAt | string/null | 会员到期时间，非会员时为 `null` |
+| active | boolean | 是否为有效会员 |
+
+返回示例：
+
+```json
+{
+  "memberStatus": "active",
+  "memberExpiresAt": "2026-11-12T08:00:00Z",
+  "active": true
+}
+```
+
+## 30. 创建会员订单
+
+### POST `/api/membership/orders`
+
+创建一笔待支付会员订单。当前默认支付渠道为 `apple_iap`。
+
+请求头：
+
+| 名称 | 必填 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | `Bearer {token}` |
+
+请求参数：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| productId | string | 是 | 商品 id，如 `20231004`、`20231003`、`20231002`、`20231001` |
+| paymentProvider | string | 否 | 支付渠道，不传默认 `apple_iap` |
+
+请求示例：
+
+```json
+{
+  "productId": "20231004",
+  "paymentProvider": "apple_iap"
+}
+```
+
+返回参数：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| orderId | string | 订单 id |
+| productId | string | 商品 id |
+| productTitle | string | 商品标题 |
+| paymentProvider | string | 支付渠道 |
+| status | string | 订单状态：`pending`、`paid` |
+| priceCents | number | 价格，单位分 |
+| currency | string | 币种 |
+| createdAt | string | 订单创建时间 |
+| expiresAt | string | 订单过期时间 |
+| transactionId | string/null | 支付交易 id，未校验时为 `null` |
+| paidAt | string/null | 支付成功时间，未支付时为 `null` |
+| memberStatus | string | 当前会员状态 |
+| memberExpiresAt | string/null | 当前会员到期时间 |
+
+返回示例：
+
+```json
+{
+  "orderId": "6ab70f42-c53c-4b17-a99b-9d0f969de6a2",
+  "productId": "20231004",
+  "productTitle": "永久会员",
+  "paymentProvider": "apple_iap",
+  "status": "pending",
+  "priceCents": 16800,
+  "currency": "CNY",
+  "createdAt": "2026-10-12T08:00:00Z",
+  "expiresAt": "2026-10-12T08:30:00Z",
+  "transactionId": null,
+  "paidAt": null,
+  "memberStatus": "inactive",
+  "memberExpiresAt": null
+}
+```
+
+常见错误：
+
+| 状态码 | message | 说明 |
+| --- | --- | --- |
+| 400 | `会员商品不存在` | 商品 id 不存在 |
+
+## 31. 校验会员订单
+
+### POST `/api/membership/orders/verify`
+
+App 支付成功后调用该接口，后端校验支付凭证并开通会员。当前版本先做本地订单闭环：`transactionId` 或 `receiptData` 不能为空；后续可在该接口内接入苹果服务端校验。
+
+请求头：
+
+| 名称 | 必填 | 说明 |
+| --- | --- | --- |
+| Authorization | 是 | `Bearer {token}` |
+
+请求参数：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| orderId | string | 是 | 创建订单返回的订单 id |
+| transactionId | string | 否 | iOS 支付交易 id |
+| receiptData | string | 否 | 支付凭证；`transactionId` 为空时可传 |
+
+请求示例：
+
+```json
+{
+  "orderId": "6ab70f42-c53c-4b17-a99b-9d0f969de6a2",
+  "transactionId": "2000000888888888"
+}
+```
+
+返回参数：同“创建会员订单”。校验成功后 `status` 为 `paid`，并返回最新会员状态。
+
+返回示例：
+
+```json
+{
+  "orderId": "6ab70f42-c53c-4b17-a99b-9d0f969de6a2",
+  "productId": "20231004",
+  "productTitle": "永久会员",
+  "paymentProvider": "apple_iap",
+  "status": "paid",
+  "priceCents": 16800,
+  "currency": "CNY",
+  "createdAt": "2026-10-12T08:00:00Z",
+  "expiresAt": "2026-10-12T08:30:00Z",
+  "transactionId": "2000000888888888",
+  "paidAt": "2026-10-12T08:03:00Z",
+  "memberStatus": "active",
+  "memberExpiresAt": "2126-09-18T08:03:00Z"
+}
+```
+
+常见错误：
+
+| 状态码 | message | 说明 |
+| --- | --- | --- |
+| 400 | `订单不存在` | 订单不存在，或不是当前登录用户的订单 |
+| 400 | `订单已过期，请重新创建订单` | 订单超过 30 分钟未校验 |
+| 400 | `支付凭证不能为空` | `transactionId` 和 `receiptData` 都为空 |
+| 400 | `该支付凭证已被使用` | 同一个交易 id 已绑定其它订单 |
