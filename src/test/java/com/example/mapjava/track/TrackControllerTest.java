@@ -225,6 +225,15 @@ class TrackControllerTest {
                 .andExpect(jsonPath("$[0].date").value("2026-09-19"))
                 .andExpect(jsonPath("$[0].startAddress").value("好友起点"))
                 .andExpect(jsonPath("$[0].endAddress").value("好友终点"));
+
+        mockMvc.perform(get("/api/tracks/" + trackId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + friendToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.trackId").value(trackId))
+                .andExpect(jsonPath("$.startAddress").value("好友起点"))
+                .andExpect(jsonPath("$.endAddress").value("好友终点"))
+                .andExpect(jsonPath("$.pointCount").value(2))
+                .andExpect(jsonPath("$.points", hasSize(2)));
     }
 
     @Test

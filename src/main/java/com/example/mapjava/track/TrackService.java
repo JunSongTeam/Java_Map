@@ -89,8 +89,13 @@ public class TrackService {
 
     public TrackDetailResponse getTrackDetail(UUID userId, UUID trackId) {
         Track track = trackRepository.findById(trackId)
-                .filter(found -> found.userId().equals(userId))
                 .orElseThrow(() -> new TrackNotFoundException(trackId));
+
+        boolean owner = track.userId().equals(userId);
+        boolean friend = !owner && friendRepository.findBetween(userId, track.userId()).isPresent();
+        if (!owner && !friend) {
+            throw new TrackNotFoundException(trackId);
+        }
 
         List<TrackPoint> points = sortedPoints(track.points());
         return new TrackDetailResponse(
