@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:h2:file:${MAP_DB_PATH:data/map-java-db};MODE=PostgreSQL;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: ${MAP_DB_USERNAME:sa}
+    password: ${MAP_DB_PASSWORD:}
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql

@@ -6,8 +6,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.context.annotation.Profile;
 
 @Repository
+@Profile("!db")
 public class InMemoryUserRepository implements UserRepository {
 
     private final ConcurrentMap<UUID, AppUser> usersById = new ConcurrentHashMap<>();

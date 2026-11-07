@@ -8,8 +8,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.context.annotation.Profile;
 
 @Repository
+@Profile("!db")
 public class InMemorySystemMessageRepository implements SystemMessageRepository {
 
     private final ConcurrentMap<UUID, SystemMessage> messagesById = new ConcurrentHashMap<>();
