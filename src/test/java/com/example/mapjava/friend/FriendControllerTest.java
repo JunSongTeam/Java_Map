@@ -149,6 +149,21 @@ class FriendControllerTest {
 
         String requesterUserId = json(acceptResult).at("/friendUserId").asText();
 
+        MvcResult receiverMessagesResult = mockMvc.perform(get("/api/system-messages")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + receiverToken))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode receiverMessages = json(receiverMessagesResult);
+        JsonNode requestMessage = null;
+        for (JsonNode message : receiverMessages) {
+            if (requestId.equals(message.at("/payload/requestId").asText())) {
+                requestMessage = message;
+                break;
+            }
+        }
+        assertThat(requestMessage).isNotNull();
+        assertThat(requestMessage.at("/read").asBoolean()).isTrue();
+
         mockMvc.perform(get("/api/friends")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + requesterToken))
                 .andExpect(status().isOk())

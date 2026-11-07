@@ -82,6 +82,30 @@ public class SystemMessageService {
         return new SystemMessageUnreadCountResponse(0);
     }
 
+    public void markFriendRequestHandled(UUID userId, UUID requestId) {
+        Instant now = Instant.now(clock);
+        String requestIdValue = requestId.toString();
+        for (SystemMessage message : systemMessageRepository.findByUserId(userId)) {
+            if (message.type() != SystemMessageType.FRIEND_REQUEST
+                    || message.read()
+                    || !requestIdValue.equals(message.payload().get("requestId"))) {
+                continue;
+            }
+
+            systemMessageRepository.save(new SystemMessage(
+                    message.id(),
+                    message.userId(),
+                    message.type(),
+                    message.title(),
+                    message.content(),
+                    true,
+                    message.payload(),
+                    message.createdAt(),
+                    now
+            ));
+        }
+    }
+
     public void createFriendRequestMessage(AppUser receiver, AppUser requester, UUID requestId) {
         createMessage(
                 receiver.id(),

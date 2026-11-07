@@ -127,6 +127,7 @@ public class FriendService {
 
         AppUser requester = getUser(request.requesterUserId());
         if (request.status() == FriendRequestStatus.ACCEPTED) {
+            systemMessageService.markFriendRequestHandled(userId, request.id());
             FriendRelation relation = friendRepository.findBetween(request.requesterUserId(), request.receiverUserId())
                     .orElseThrow(() -> new BadRequestException("好友请求已处理"));
             return toFriendResponse(userId, requester, relation, true);
@@ -148,6 +149,7 @@ public class FriendService {
                 request.createdAt(),
                 Instant.now(clock)
         ));
+        systemMessageService.markFriendRequestHandled(userId, request.id());
         systemMessageService.createFriendAcceptedMessage(requester, getUser(userId), request.id());
 
         return toFriendResponse(userId, requester, relation, false);
