@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.example.mapjava.common.BadRequestException;
 import com.example.mapjava.membership.MembershipService;
 import com.example.mapjava.membership.MembershipStatusResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,6 +20,8 @@ public class AuthService {
     private final TokenSettings tokenSettings;
     private final MembershipService membershipService;
     private final Clock clock;
+    private final String reviewAccountPhone;
+    private final boolean reviewAccountMemberEnabled;
 
     public AuthService(
             UserRepository userRepository,
@@ -27,7 +30,9 @@ public class AuthService {
             TokenGenerator tokenGenerator,
             TokenSettings tokenSettings,
             MembershipService membershipService,
-            Clock clock
+            Clock clock,
+            @Value("${auth.review-account.phone:}") String reviewAccountPhone,
+            @Value("${auth.review-account.member-enabled:false}") boolean reviewAccountMemberEnabled
     ) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
@@ -36,12 +41,17 @@ public class AuthService {
         this.tokenSettings = tokenSettings;
         this.membershipService = membershipService;
         this.clock = clock;
+        this.reviewAccountPhone = reviewAccountPhone == null ? "" : reviewAccountPhone.trim();
+        this.reviewAccountMemberEnabled = reviewAccountMemberEnabled;
     }
 
     public AuthResponse login(LoginRequest request) {
         String phone = verificationCodeService.verifySmsCode(request.phone(), request.code());
         AppUser user = userRepository.findByPhone(phone)
                 .orElseGet(() -> createUser(phone));
+        if (reviewAccountMemberEnabled && phone.equals(reviewAccountPhone)) {
+            membershipService.ensureReviewMembership(user.id());
+        }
 
         return issueToken(user);
     }

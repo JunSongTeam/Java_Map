@@ -63,7 +63,7 @@ class AuthControllerTest {
 
     @Test
     void logsInReviewAccountWithoutSendingVerificationCode() throws Exception {
-        mockMvc.perform(post("/api/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -75,7 +75,16 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.token").isNotEmpty())
                 .andExpect(jsonPath("$.expiresAt").doesNotExist())
-                .andExpect(jsonPath("$.user").doesNotExist());
+                .andExpect(jsonPath("$.user").doesNotExist())
+                .andReturn();
+        String token = tokenFrom(loginResult);
+
+        mockMvc.perform(get("/api/membership/status")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.memberStatus").value("active"))
+                .andExpect(jsonPath("$.memberExpiresAt").isNotEmpty())
+                .andExpect(jsonPath("$.active").value(true));
     }
 
     @Test

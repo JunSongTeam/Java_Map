@@ -25,6 +25,8 @@ auth:
   review-account:
     phone: ${AUTH_REVIEW_ACCOUNT_PHONE:13012340987}
     code: ${AUTH_REVIEW_ACCOUNT_CODE:123456}
+    member-enabled: ${AUTH_REVIEW_ACCOUNT_MEMBER_ENABLED:true}
+    member-duration-days: ${AUTH_REVIEW_ACCOUNT_MEMBER_DURATION_DAYS:36500}
 
 sms:
   aliyun:

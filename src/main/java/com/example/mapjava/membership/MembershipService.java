@@ -17,6 +17,7 @@ public class MembershipService {
     private static final String INACTIVE = "inactive";
     private static final String DEFAULT_PAYMENT_PROVIDER = "apple_iap";
     private static final Duration ORDER_TTL = Duration.ofMinutes(30);
+    private static final int REVIEW_MEMBER_DURATION_DAYS = 36500;
     private static final List<MembershipProduct> PRODUCTS = List.of(
             new MembershipProduct(
                     "20231004",
@@ -104,6 +105,21 @@ public class MembershipService {
         return statusRepository.findByUserId(userId)
                 .map(this::toStatusResponse)
                 .orElseGet(() -> new MembershipStatusResponse(INACTIVE, null, false));
+    }
+
+    public void ensureReviewMembership(UUID userId) {
+        Instant now = Instant.now(clock);
+        boolean active = statusRepository.findByUserId(userId)
+                .map(MembershipStatus::expiresAt)
+                .map(expiresAt -> expiresAt.isAfter(now))
+                .orElse(false);
+        if (!active) {
+            statusRepository.save(new MembershipStatus(
+                    userId,
+                    now.plus(REVIEW_MEMBER_DURATION_DAYS, ChronoUnit.DAYS),
+                    now
+            ));
+        }
     }
 
     public MembershipOrderResponse createOrder(UUID userId, CreateMembershipOrderRequest request) {
