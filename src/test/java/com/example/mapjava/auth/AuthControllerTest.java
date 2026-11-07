@@ -26,7 +26,11 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-@SpringBootTest(properties = "app.avatar.storage-dir=target/test-avatars")
+@SpringBootTest(properties = {
+        "app.avatar.storage-dir=target/test-avatars",
+        "auth.review-account.phone=13012340987",
+        "auth.review-account.code=123456"
+})
 @AutoConfigureMockMvc
 class AuthControllerTest {
 
@@ -54,6 +58,23 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.token").isNotEmpty())
                 .andExpect(jsonPath("$.expiresAt").doesNotExist())
                 .andExpect(jsonPath("$.expiresInSeconds").doesNotExist())
+                .andExpect(jsonPath("$.user").doesNotExist());
+    }
+
+    @Test
+    void logsInReviewAccountWithoutSendingVerificationCode() throws Exception {
+        mockMvc.perform(post("/api/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "phone": "13012340987",
+                                  "code": "123456"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.token").isNotEmpty())
+                .andExpect(jsonPath("$.expiresAt").doesNotExist())
                 .andExpect(jsonPath("$.user").doesNotExist());
     }
 

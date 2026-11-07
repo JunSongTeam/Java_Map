@@ -22,6 +22,9 @@ auth:
     expiration-seconds: ${AUTH_VERIFICATION_CODE_EXPIRATION_SECONDS:300}
     expose-code: ${AUTH_VERIFICATION_CODE_EXPOSE_CODE:true}
     default-code: ${AUTH_VERIFICATION_CODE_DEFAULT_CODE:123456}
+  review-account:
+    phone: ${AUTH_REVIEW_ACCOUNT_PHONE:13012340987}
+    code: ${AUTH_REVIEW_ACCOUNT_CODE:123456}
 
 sms:
   aliyun:

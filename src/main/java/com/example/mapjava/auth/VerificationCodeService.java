@@ -26,6 +26,8 @@ public class VerificationCodeService {
     private final long expirationSeconds;
     private final boolean exposeCode;
     private final String defaultCode;
+    private final String reviewAccountPhone;
+    private final String reviewAccountCode;
 
     public VerificationCodeService(
             VerificationCodeRepository verificationCodeRepository,
@@ -34,7 +36,9 @@ public class VerificationCodeService {
             Clock clock,
             @Value("${auth.verification-code.expiration-seconds:300}") long expirationSeconds,
             @Value("${auth.verification-code.expose-code:true}") boolean exposeCode,
-            @Value("${auth.verification-code.default-code:}") String defaultCode
+            @Value("${auth.verification-code.default-code:}") String defaultCode,
+            @Value("${auth.review-account.phone:}") String reviewAccountPhone,
+            @Value("${auth.review-account.code:}") String reviewAccountCode
     ) {
         if (expirationSeconds <= 0) {
             throw new IllegalArgumentException("auth.verification-code.expiration-seconds must be positive");
@@ -47,6 +51,11 @@ public class VerificationCodeService {
         this.expirationSeconds = expirationSeconds;
         this.exposeCode = exposeCode;
         this.defaultCode = normalizeDefaultCode(defaultCode);
+        this.reviewAccountPhone = normalizeReviewPhone(reviewAccountPhone);
+        this.reviewAccountCode = normalizeDefaultCode(reviewAccountCode);
+        if ((this.reviewAccountPhone == null) != (this.reviewAccountCode == null)) {
+            throw new IllegalArgumentException("auth.review-account.phone and code must be configured together");
+        }
     }
 
     public VerificationCodeResponse sendCode(SendVerificationCodeRequest request) {
@@ -84,7 +93,11 @@ public class VerificationCodeService {
 
     public String verifySmsCode(String phone, String code) {
         String target = normalizeTarget(DEFAULT_CHANNEL, phone);
-        verifyStoredCode(DEFAULT_CHANNEL, target, code.trim());
+        String normalizedCode = code.trim();
+        if (target.equals(reviewAccountPhone) && normalizedCode.equals(reviewAccountCode)) {
+            return target;
+        }
+        verifyStoredCode(DEFAULT_CHANNEL, target, normalizedCode);
         return target;
     }
 
@@ -124,6 +137,13 @@ public class VerificationCodeService {
         }
 
         return normalizedCode;
+    }
+
+    private static String normalizeReviewPhone(String reviewPhone) {
+        if (reviewPhone == null || reviewPhone.isBlank()) {
+            return null;
+        }
+        return normalizePhone(reviewPhone.trim());
     }
 
     private static String normalizeChannel(String channel) {
